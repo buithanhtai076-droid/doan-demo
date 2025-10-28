@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sản phẩm - CarShop</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      padding-top: 70px; /* tránh navbar che nội dung */
+    }
+    /* Thương hiệu nổi bật */
+    .navbar-brand {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      color: #fff !important;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.45);
+    }
+    .product-card {
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: transform 0.3s;
+    }
+    .product-card:hover {
+      transform: translateY(-5px);
+    }
+    .product-card img {
+      height: 200px;
+      object-fit: cover;
+      width: 100%;
+
+
+
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .product-card:hover img { transform: translateY(-6px) scale(1.03); box-shadow: 0 12px 30px rgba(0,0,0,0.18); }
+    .product-card .card-body {
+      text-align: center;
+    }
+    /* Tiêu đề (tên xe) nổi bật hơn */
+    .product-card .card-title {
+      font-size: 1.12rem;
+      font-weight: 800;
+      color: #0b1320;
+      margin-bottom: 0.5rem;
+      transition: transform 0.18s ease, color 0.18s ease;
+      display: inline-block;
+    }
+    .product-card:hover .card-title { transform: translateY(-4px); color: #c8102e; }
+
+    /* Giá nổi bật */
+    .price {
+      font-weight: 900;
+      font-size: 1.14rem;
+      margin: 0.5rem 0;
+      letter-spacing: 0.3px;
+    }
+    .price-red {
+      color: #c8102e; /* đỏ nổi bật */
+      background: rgba(200,16,46,0.06);
+      padding: 6px 10px;
+      border-radius: 8px;
+      display: inline-block;
+      box-shadow: 0 6px 18px rgba(200,16,46,0.08);
+    }
+    .product-card:hover .price-red { color: #9b081f; box-shadow: 0 10px 22px rgba(155,8,31,0.12); }
+    footer {
+      background: #222;
+      color: #fff;
+      text-align: center;
+      padding: 15px;
+      margin-top: 30px;
+    }
+    /* Canh menu sang phải */
+    .navbar-collapse {
+      justify-content: flex-end;
+    }
+    .navbar-nav {
+      text-align: right;
+    }
+    /* Nút reset filter góc phải trong vùng sản phẩm */
+    #resetFilterBtn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border-radius: 50%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+    }
+    #resetFilterBtn:hover { transform: translateY(-1px); }
+  /* Thumbnail nhỏ trong modal chi tiết */
+  .pd-thumbs { display: flex; gap: 8px; margin-top: 12px; justify-content: center; }
+  .pd-thumbs img { width: 64px; height: 44px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent; }
+  .pd-thumbs img.active { border-color: #c8102e; }
+  .pd-thumb-wrap { position: relative; display: inline-block; }
+  .pd-thumb-cart { position: absolute; right: 4px; top: 4px; background: rgba(0,0,0,0.6); color: #fff; border: none; padding: 4px 6px; border-radius: 6px; cursor: pointer; display: none; font-size: 12px; }
+  .pd-thumb-wrap.active .pd-thumb-cart { display: inline-flex; align-items:center; justify-content:center; }
+  .pd-main-overlay { position: absolute; right: 12px; top: 12px; background: rgba(0,0,0,0.6); color: #fff; border: none; padding: 8px 10px; border-radius: 8px; cursor: pointer; display: none; z-index: 5; }
+  #pdModal .pd-main-container { position: relative; }
+  @media (max-width: 576px) { .pd-thumb-cart { right: 6px; top: 6px; padding:6px 8px; } }
+    /* Snackbar (thông báo dưới cùng) */
+    .snackbar {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 20px;
+      background: rgba(20,20,20,0.95);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      z-index: 3000;
+    }
+    .snackbar.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+    .snackbar .btn-sb { background: transparent; border: 1px solid rgba(255,255,255,0.12); color: #fff; padding: 6px 10px; border-radius: 6px; cursor: pointer; }
+    /* Mobile tweaks */
+    @media (max-width: 576px) {
+      .product-card img { height: auto; aspect-ratio: 16/9; }
+      .product-card .card-body { padding: 12px; }
+      .pd-thumbs img { width: 72px; height: 48px; }
+      /* make thumbs container horizontally scrollable on small screens */
+      .pd-thumbs { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 6px; }
+      /* Modal full screen on mobile */
+      #pdModal > div { width: 100%; height: 100%; max-width: none; border-radius: 0; margin: 0; display: flex; flex-direction: column; padding: 12px; }
+      .pd-main-img { height: calc(50vh); }
+      .pd-thumbs { justify-content: flex-start; }
+      .pd-price { font-size: 1.1rem; }
+      #pdModal .pd-desc { font-size: 0.95rem; }
+      #pdModal .btn { padding: 10px 14px; font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar giống index -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="index.html">CarShop</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item"><a class="nav-link" href="index.html">Trang chủ</a></li>
+          <li class="nav-item"><a class="nav-link active" href="product.html">Sản phẩm</a></li>
+          <li class="nav-item"><a class="nav-link" href="contact.html">Liên hệ</a></li>
+          <li class="nav-item position-relative">
+            <a class="nav-link" href="cart.html">Giỏ hàng 🛒</a>
+            <span id="cartCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Danh sách sản phẩm -->
+  <div class="container my-5">
+    <!-- Liên kết về trang chủ -->
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="index.html">Trang chủ</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Sản phẩm</li>
+      </ol>
+    </nav>
+    <h2 id="pageTitle" class="text-center mb-4">🚗 Danh sách xe hơi</h2>
+    <div style="position:relative;">
+      <button id="resetFilterBtn" class="btn btn-outline-secondary" title="Hiển thị tất cả sản phẩm">⟲</button>
+      <div class="row g-4" id="productGrid"></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 CarShop - All rights reserved</p>
+  </footer>
+  <!-- Modal chi tiết sản phẩm -->
+  <div id="pdModal" role="dialog" aria-hidden="true" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); align-items:center; justify-content:center; z-index:4000;">
+    <div style="background:#fff; max-width:900px; width:92%; margin:auto; border-radius:10px; padding:18px; position:relative;">
+      <button aria-label="Quay lại danh sách sản phẩm" id="pdBackBtn" onclick="backToProducts()" title="Quay lại" tabindex="0" style="position:absolute; left:12px; top:12px; background:rgba(255,255,255,0.9); border:none; font-size:18px; color:#333; padding:6px; border-radius:6px; z-index:4100;">
+        <!-- left arrow SVG -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L6.707 7l4.647 4.646a.5.5 0 0 1-.708.708l-5-5a.5.5 0 0 1 0-.708l5-5a.5.5 0 0 1 .708 0z"/></svg>
+      </button>
+      <button aria-label="Đóng" onclick="closeProductDetail()" style="position:absolute; right:12px; top:12px; background:transparent; border:none; font-size:20px;">×</button>
+      <div style="display:flex; gap:18px; flex-wrap:wrap; align-items:flex-start;">
+        <div style="flex:1 1 480px; text-align:center;">
+          <div class="pd-main-container" style="position:relative;">
+            <img class="pd-main-img" src="" alt="Ảnh sản phẩm" style="width:100%; height:420px; object-fit:cover; border-radius:8px;">
+            <button class="pd-main-overlay" id="pdMainCartBtn">🛒</button>
+          </div>
+          <div class="pd-thumbs"></div>
+        </div>
+        <div style="flex:0 1 340px;">
+          <h4 class="pd-title"></h4>
+          <p class="pd-price" style="font-weight:800; color:#c8102e;"></p>
+          <p class="pd-desc">Mô tả ngắn: Xe đẹp, mạnh mẽ và phù hợp cho trải nghiệm lái tuyệt vời.</p>
+          <div class="d-flex align-items-center gap-2 mt-3">
+            <div class="input-group input-group-sm" style="width:140px;">
+              <button class="btn btn-outline-secondary" type="button" id="pdQtyMinus">−</button>
+              <input type="number" id="pdQtyInput" class="form-control text-center" value="1" min="1" aria-label="Số lượng">
+              <button class="btn btn-outline-secondary" type="button" id="pdQtyPlus">+</button>
+            </div>
+            <div style="margin-left:8px;"><button class="btn btn-primary" id="pdAddBtn">Thêm vào giỏ</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Snackbar -->
+  <div id="snackbar" class="snackbar" role="status" aria-live="polite">
+    <div class="sb-msg">Đã thêm một sản phẩm vào giỏ hàng</div>
+    <button class="btn-sb" id="viewCartBtn">Xem giỏ hàng</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Giữ số lượng giỏ hàng đồng bộ
+    function updateCartCount(){
+      const cart = JSON.parse(localStorage.getItem("cart")) || [];
+      const count = cart.reduce((acc,item)=>acc+item.quantity,0);
+      document.getElementById("cartCount").textContent = count;
+    }
+    updateCartCount();
+
+    // Danh sách sản phẩm (có thuộc tính brand)
+    const products = [
+      { name: 'Xe Lamborghini', brand: 'lamborghini', price: 1200000000, img: '/images/lambor1.jpg', images: ['/images/lambor1.jpg','/images/lambor2.jpg','/images/lambor3.jpg'] },
+      { name: 'Xe Bugatti', brand: 'bugatti', price: 800000000, img: '/images/bugatti1.jpg', images: ['/images/bugatti1.jpg','/images/bugatti2.jpg','/images/bugatti3.jpg'] },
+      { name: 'Xe Ferrari 488 GTB', brand: 'ferrari', price: 1500000000, img: '/images/ferrari1.jpg', images: ['/images/ferrari1.jpg','/images/ferrari2.jpg','/images/ferrari3.jpg'] },
+      { name: 'Xe Porche', brand: 'porche', price: 900000000, img: '/images/porche1.jpg', images: ['/images/porche1.jpg','/images/porche2.jpg','/images/porche3.jpg'] },
+      { name: 'Xe Mercedes', brand: 'mercedes', price: 700000000, img: '/images/mercedes1.jpg', images: ['/images/mercedes1.jpg','/images/mercedes2.jpg','/images/mercedes3.jpg'] },
+      { name: 'Xe Audi', brand: 'audi', price: 500000000, img: '/images/audi1.jpg', images: ['/images/audi1.jpg','/images/audi2.jpg','/images/audi3.jpg'] },
+    ];
+
+    // Mô tả ngắn và thông số kỹ thuật cho từng sản phẩm (hiển thị trong modal)
+    const productDescriptions = {
+      'Xe Lamborghini': {
+        short: 'Siêu xe hiệu suất cao, thiết kế hung hãn và âm thanh động cơ đầy uy lực. Phù hợp cho người thích tốc độ và cá tính nổi bật.',
+        specs: `
+          <ul>
+            <li>Động cơ: V10/V12 (tùy phiên bản)</li>
+            <li>Dung tích: ~5.2–6.5 L</li>
+            <li>Công suất: ~610–770 mã lực</li>
+            <li>0–100 km/h: ~2.8–3.5 giây</li>
+            <li>Vận tốc tối đa: ~325–350+ km/h</li>
+            <li>Hệ truyền động: AWD hoặc RWD</li>
+          </ul>`
+      },
+      'Xe Bugatti': {
+        short: 'Đỉnh cao về tốc độ và kỹ thuật — siêu xe hạng siêu giới hạn với công suất cực lớn và nội thất siêu sang.',
+        specs: `
+          <ul>
+            <li>Động cơ: W16 tăng áp kép</li>
+            <li>Dung tích: ~8.0 L</li>
+            <li>Công suất: ~1.000–1.600+ mã lực</li>
+            <li>0–100 km/h: ~2.2–2.6 giây</li>
+            <li>Vận tốc tối đa: >400 km/h (phiên bản đặc biệt)</li>
+            <li>Hệ truyền động: AWD</li>
+          </ul>`
+      },
+      'Xe Ferrari 488 GTB': {
+        short: 'Siêu xe thể thao thuần chất của Ferrari: phản ứng tay lái nhạy, động cơ V8 tăng áp và trải nghiệm lái sống động.',
+        specs: `
+          <ul>
+            <li>Động cơ: V8 tăng áp kép</li>
+            <li>Dung tích: ~3.9 L</li>
+            <li>Công suất: ~660–670 mã lực</li>
+            <li>0–100 km/h: ~3.0 giây</li>
+            <li>Vận tốc tối đa: ~330 km/h</li>
+            <li>Hệ truyền động: RWD</li>
+          </ul>`
+      },
+      'Xe Porche': {
+        short: 'Porsche cân bằng giữa hiệu năng cao và tiện dụng hàng ngày: xử lý chính xác, khung gầm vững và công nghệ tiên tiến.',
+        specs: `
+          <ul>
+            <li>Động cơ: Boxer 6 xy-lanh, tăng áp</li>
+            <li>Dung tích: ~3.0 L</li>
+            <li>Công suất: ~430–650 mã lực (tùy mẫu)</li>
+            <li>0–100 km/h: ~2.7–4.0 giây</li>
+            <li>Vận tốc tối đa: ~300–330 km/h</li>
+            <li>Hệ truyền động: RWD / AWD</li>
+          </ul>`
+      },
+      'Xe Mercedes': {
+        short: 'Kết hợp giữa sang trọng và sức mạnh; các phiên bản AMG đem lại trải nghiệm lái thể thao cùng tiện nghi cao cấp.',
+        specs: `
+          <ul>
+            <li>Động cơ: V6/V8 tăng áp hoặc hybrid</li>
+            <li>Dung tích: ~3.0–4.0 L</li>
+            <li>Công suất: ~400–630 mã lực (AMG)</li>
+            <li>0–100 km/h: ~3.0–4.5 giây</li>
+            <li>Vận tốc tối đa: ~250–320 km/h</li>
+            <li>Hệ truyền động: RWD / AWD</li>
+          </ul>`
+      },
+      'Xe Audi': {
+        short: 'Audi mang đến hiệu suất ổn định, công nghệ cao và hệ dẫn động quattro nổi tiếng — phù hợp cho lái thể thao và sử dụng hàng ngày.',
+        specs: `
+          <ul>
+            <li>Động cơ: V10 hoặc V6 tăng áp (tùy mẫu)</li>
+            <li>Dung tích: ~2.9–5.2 L</li>
+            <li>Công suất: ~450–620 mã lực</li>
+            <li>0–100 km/h: ~3.0–3.8 giây</li>
+            <li>Vận tốc tối đa: ~305–330 km/h</li>
+            <li>Hệ truyền động: AWD (quattro)</li>
+          </ul>`
+      }
+    };
+
+    // Lấy brand từ query string nếu có và lọc sản phẩm
+    function getQueryParam(name){
+      return new URLSearchParams(window.location.search).get(name);
+    }
+
+  const brandLabels = { lamborghini: 'Lamborghini', bugatti: 'Bugatti', ferrari: 'Ferrari', pickup: 'Pickup', codien: 'Cổ Điển', mini: 'Mini' };
+
+    function renderProducts(){
+      const grid = document.getElementById('productGrid');
+      grid.innerHTML = '';
+      const brand = getQueryParam('brand');
+      const titleEl = document.getElementById('pageTitle');
+      const breadcrumbItems = document.querySelectorAll('.breadcrumb .breadcrumb-item');
+        const resetBtn = document.getElementById('resetFilterBtn');
+      if(brand){
+        const label = brandLabels[brand] || brand;
+        // title becomes a link to reset filter
+        titleEl.innerHTML = `<a href="product.html" class="text-decoration-none text-dark">🚗 Sản phẩm hãng: ${label}</a>`;
+        // make breadcrumb second item link back to product page (show all)
+        if(breadcrumbItems.length > 1){
+          breadcrumbItems[1].innerHTML = `<a href="product.html">Sản phẩm</a>`;
+          breadcrumbItems[1].classList.remove('active');
+          breadcrumbItems[1].removeAttribute('aria-current');
+        }
+        // show reset button
+        if(resetBtn) resetBtn.style.display = 'inline-flex';
+      } else {
+        titleEl.textContent = '🚗 Danh sách xe hơi';
+        if(breadcrumbItems.length > 1){
+          breadcrumbItems[1].textContent = 'Sản phẩm';
+          breadcrumbItems[1].classList.add('active');
+          breadcrumbItems[1].setAttribute('aria-current','page');
+        }
+        if(resetBtn) resetBtn.style.display = 'none';
+      }
+      const filtered = brand ? products.filter(p => p.brand === brand) : products;
+      if(brand && filtered.length === 0){
+        grid.innerHTML = '<div class="col-12"><p class="text-center">Không tìm thấy sản phẩm cho hãng này.</p></div>';
+        return;
+      }
+      filtered.forEach(p => {
+        const imgLinkStart = brand ? '<a href="product.html" class="d-block">' : '';
+        const imgLinkEnd = brand ? '</a>' : '';
+        const titleStart = brand ? '<a href="product.html" class="text-decoration-none text-dark">' : '';
+        const titleEnd = brand ? '</a>' : '';
+        grid.innerHTML += `
+          <div class="col-md-4">
+            <div class="card product-card">
+              ${imgLinkStart}<img src="${p.img}" class="card-img-top" alt="${p.name}" onclick="openProductDetail(${products.indexOf(p)})">${imgLinkEnd}
+              <div class="card-body text-center">
+                <h5 class="card-title">${titleStart}${p.name}${titleEnd}</h5>
+                <p class="card-text">Giá: <span class="price price-red">${p.price.toLocaleString()} VNĐ</span></p>
+                <button class="btn btn-primary" onclick="openProductDetail(${products.indexOf(p)})">Mua ngay</button>
+              </div>
+            </div>
+          </div>`;
+      });
+    }
+
+    // Modal chi tiết sản phẩm
+    function openProductDetail(index){
+      const p = products[index];
+      if(!p) return;
+      window._currentPdIndex = index;
+      const modal = document.getElementById('pdModal');
+      modal.querySelector('.pd-title').textContent = p.name;
+      modal.querySelector('.pd-price').textContent = p.price.toLocaleString() + ' VNĐ';
+      const mainImg = modal.querySelector('.pd-main-img');
+      mainImg.src = p.images && p.images[0] ? p.images[0] : p.img;
+      const thumbs = modal.querySelector('.pd-thumbs');
+      thumbs.innerHTML = '';
+      const images = p.images && p.images.length ? p.images.slice(0,3) : [p.img];
+      images.forEach((src, i) => {
+        const wrap = document.createElement('span');
+        wrap.className = 'pd-thumb-wrap';
+        const img = document.createElement('img');
+        img.src = src;
+        img.className = 'pd-thumb-img';
+        if(i === 0) img.classList.add('active');
+
+        // cart overlay per-thumb
+        const cartBtn = document.createElement('button');
+        cartBtn.className = 'pd-thumb-cart';
+        cartBtn.title = 'Thêm ảnh này vào giỏ';
+        cartBtn.innerHTML = '🛒';
+        cartBtn.addEventListener('click', function(e){
+          e.stopPropagation();
+          // use current qty
+          const qtyInput = modal.querySelector('#pdQtyInput');
+          let qty = 1; if(qtyInput) qty = Math.max(1, parseInt(qtyInput.value) || 1);
+          addToCart(p.name, p.price, src, qty);
+        });
+
+        img.addEventListener('click', function(){
+          mainImg.src = src;
+          thumbs.querySelectorAll('.pd-thumb-wrap').forEach(w=>w.classList.remove('active'));
+          wrap.classList.add('active');
+        });
+
+        wrap.appendChild(img);
+        wrap.appendChild(cartBtn);
+        if(i === 0) wrap.classList.add('active');
+        thumbs.appendChild(wrap);
+      });
+      // reset qty to 1 when opening modal
+      const qtyInput = modal.querySelector('#pdQtyInput');
+      if(qtyInput) qtyInput.value = 1;
+      // fill description + specs
+      const descEl = modal.querySelector('.pd-desc');
+      if(descEl){
+        const info = productDescriptions[p.name];
+        if(info){
+          descEl.innerHTML = `<strong>${info.short}</strong>` + info.specs;
+        } else {
+          descEl.textContent = 'Mô tả ngắn: Xe đẹp, mạnh mẽ và phù hợp cho trải nghiệm lái tuyệt vời.';
+        }
+      }
+      // ensure main overlay visible when thumb active and wire its action
+      const firstActive = modal.querySelector('.pd-thumb-wrap.active');
+      const mainCartBtn = modal.querySelector('#pdMainCartBtn');
+      if(mainCartBtn){
+        if(firstActive){
+          firstActive.classList.add('active');
+        }
+        mainCartBtn.style.display = 'inline-block';
+        // update main overlay to add currently selected image
+        mainCartBtn.onclick = function(){
+          // find active thumb or use mainImg
+          const activeImg = thumbs.querySelector('.pd-thumb-wrap.active img');
+          const chosen = activeImg ? activeImg.src : mainImg.src;
+          const qtyInput = modal.querySelector('#pdQtyInput');
+          let qty = 1; if(qtyInput) qty = Math.max(1, parseInt(qtyInput.value) || 1);
+          addToCart(p.name, p.price, chosen, qty);
+        };
+      }
+      // show modal (simple): display block and focus
+      modal.style.display = 'flex';
+      modal.setAttribute('aria-hidden','false');
+    }
+
+    function closeProductDetail(){
+      const modal = document.getElementById('pdModal');
+      modal.style.display = 'none';
+      modal.setAttribute('aria-hidden','true');
+    }
+
+    // Quay về danh sách sản phẩm: đóng modal và cuộn tới lưới sản phẩm
+    function backToProducts(){
+      closeProductDetail();
+      // scroll đến khu vực sản phẩm
+      const grid = document.getElementById('productGrid');
+      if(grid){
+        grid.scrollIntoView({behavior: 'smooth', block: 'start'});
+        // focus vào phần tử sản phẩm đầu tiên để hỗ trợ keyboard
+        const firstCard = grid.querySelector('.product-card .card-title, .product-card img');
+        if(firstCard){
+          // ensure focusable
+          if(!firstCard.hasAttribute('tabindex')){
+            firstCard.setAttribute('tabindex', '-1');
+            // focus then remove tabindex for cleanliness
+            firstCard.focus();
+            // remove tabindex on next tick
+            setTimeout(()=>{ firstCard.removeAttribute('tabindex'); }, 200);
+          } else {
+            try{ firstCard.focus(); }catch(e){}
+          }
+        }
+      }
+    }
+
+    // Nút thêm vào giỏ từ modal
+    document.getElementById('pdAddBtn').addEventListener('click', function(){
+      const idx = window._currentPdIndex;
+      if(typeof idx === 'number'){
+        const p = products[idx];
+        // Lấy ảnh đang hiển thị trong modal (thumbnail active / main image)
+        const modal = document.getElementById('pdModal');
+        const mainImg = modal.querySelector('.pd-main-img');
+        const chosenImg = mainImg && mainImg.src ? mainImg.src : p.img;
+        // đọc số lượng từ modal
+        const qtyInput = modal.querySelector('#pdQtyInput');
+        let qty = 1;
+        if(qtyInput) qty = Math.max(1, parseInt(qtyInput.value) || 1);
+        addToCart(p.name, p.price, chosenImg, qty);
+        closeProductDetail();
+      }
+    });
+
+    // Quantity controls in modal
+    const pdQtyMinus = document.getElementById('pdQtyMinus');
+    const pdQtyPlus = document.getElementById('pdQtyPlus');
+    const pdQtyInput = document.getElementById('pdQtyInput');
+    if(pdQtyMinus && pdQtyInput){
+      pdQtyMinus.addEventListener('click', function(){
+        const v = Math.max(1, (parseInt(pdQtyInput.value) || 1) - 1);
+        pdQtyInput.value = v;
+      });
+    }
+    if(pdQtyPlus && pdQtyInput){
+      pdQtyPlus.addEventListener('click', function(){
+        const v = Math.max(1, (parseInt(pdQtyInput.value) || 1) + 1);
+        pdQtyInput.value = v;
+      });
+    }
+    if(pdQtyInput){
+      pdQtyInput.addEventListener('input', function(){
+        const v = parseInt(pdQtyInput.value) || 1;
+        pdQtyInput.value = v < 1 ? 1 : v;
+      });
+    }
+
+    // Đóng modal khi click overlay (không phải nội dung)
+    const pdModalEl = document.getElementById('pdModal');
+    const pdContent = pdModalEl.querySelector('div > div');
+    pdModalEl.addEventListener('click', function(e){
+      if(e.target === pdModalEl){
+        closeProductDetail();
+      }
+    });
+    // Prevent clicks inside content from closing modal
+    if(pdContent) pdContent.addEventListener('click', function(e){ e.stopPropagation(); });
+
+    // Delegation for thumbnail taps (in case thumbs are added dynamically)
+    pdModalEl.addEventListener('click', function(e){
+      const t = e.target;
+      if(t && t.tagName === 'IMG' && t.parentElement && t.parentElement.classList.contains('pd-thumbs')){
+        const mainImg = pdModalEl.querySelector('.pd-main-img');
+        mainImg.src = t.src;
+        pdModalEl.querySelectorAll('.pd-thumbs img').forEach(x=>x.classList.remove('active'));
+        t.classList.add('active');
+      }
+    });
+
+    
+    // Thêm sản phẩm vào giỏ hàng — qty tùy chọn (mặc định 1)
+    // ✅ Chỉ cho phép mua khi đã đăng nhập
+function addToCart(name, price, img) {
+  const loggedUser = localStorage.getItem("loggedUser");
+  if (!loggedUser) {
+    alert("⚠️ Bạn cần đăng nhập trước khi mua hàng!");
+    return; // Ngừng lại, không thêm vào giỏ
+  }
+
+  let cart = JSON.parse(localStorage.getItem("cart")) || [];
+  let existing = cart.find(item => item.name === name);
+  if (existing) {
+    existing.quantity++;
+  } else {
+    cart.push({ name, price, img, quantity: 1 });
+  }
+  localStorage.setItem("cart", JSON.stringify(cart));
+  updateCartCount();
+  showSnackbar("Đã thêm một sản phẩm vào giỏ hàng");
+}
+
+    // Snackbar functions
+    function showSnackbar(message){
+      const sb = document.getElementById('snackbar');
+      if(!sb) return;
+      sb.querySelector('.sb-msg').textContent = message;
+      sb.classList.add('show');
+      // auto hide
+      if(window._sbTimer) clearTimeout(window._sbTimer);
+      window._sbTimer = setTimeout(()=> sb.classList.remove('show'), 3500);
+    }
+
+    const viewCartBtn = document.getElementById('viewCartBtn');
+    if(viewCartBtn){
+      viewCartBtn.addEventListener('click', function(){ window.location.href = 'cart.html'; });
+    }
+
+    // Render khi load
+    renderProducts();
+
+    // Khi user quay lại trang từ history (back), một số trình duyệt dùng bfcache và không reload script;
+    // lắng nghe pageshow để cập nhật lại số lượng giỏ và danh sách sản phẩm để có thể tiếp tục mua sắm.
+    window.addEventListener('pageshow', function (event) {
+      // event.persisted true nếu từ bfcache
+      updateCartCount();
+      renderProducts();
+    });
+
+    // Nút hoàn tác bộ lọc (reset)
+    const resetBtnEl = document.getElementById('resetFilterBtn');
+    if(resetBtnEl){
+      resetBtnEl.addEventListener('click', function(){
+        window.location.href = 'product.html';
+      });
+    }
+</script>
+<!-- ✅ Kiểm tra đăng nhập và hiển thị lời chào 3 giây + nút Đăng xuất -->
+<script>
+  const loggedUser = localStorage.getItem("loggedUser");
+  if (loggedUser) {
+    const navbar = document.querySelector(".navbar-nav");
+    if (navbar && !document.getElementById("greetingNavItem")) {
+      const li = document.createElement("li");
+      li.className = "nav-item d-flex align-items-center";
+      li.id = "greetingNavItem";
+
+      const span = document.createElement("span");
+      span.className = "nav-link text-success fw-bold";
+      span.id = "greetingText";
+      span.textContent = `Xin chào, ${loggedUser.split("@")[0]} 👋`;
+
+      const btn = document.createElement("button");
+      btn.className = "btn btn-outline-light btn-sm ms-2";
+      btn.textContent = "Đăng xuất";
+
+      li.appendChild(span);
+      li.appendChild(btn);
+      navbar.appendChild(li);
+
+      // Sau 3 giây tự ẩn lời chào, chỉ còn nút đăng xuất
+      setTimeout(() => {
+        const g = document.getElementById("greetingText");
+        if (g) g.style.display = "none";
+      }, 3000);
+
+      // Khi nhấn "Đăng xuất" → xóa đăng nhập và quay về trang chủ
+      btn.addEventListener("click", () => {
+        localStorage.removeItem("loggedUser");
+        alert("Bạn đã đăng xuất!");
+        location.href = "index.html";
+      });
+    }
+  }
+</script>
+</body>
+</html>

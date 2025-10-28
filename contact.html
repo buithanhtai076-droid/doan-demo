@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Liên hệ - CarShop</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      padding-top: 70px; /* để tránh navbar che nội dung */
+    }
+    /* Thương hiệu nổi bật */
+    .navbar-brand {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      color: #fff !important;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.45);
+    }
+    .contact-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      padding: 40px;
+      max-width: 1200px;
+      margin: auto;
+    }
+    .contact-info, .contact-form {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .contact-info h2, .contact-form h2 {
+      margin-bottom: 15px;
+      color: #d70018;
+    }
+    .contact-form input, .contact-form textarea {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .contact-form button {
+      background: #d70018;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .contact-form button:hover {
+      background: #b30014;
+    }
+    .map {
+      margin: 40px auto;
+      max-width: 1200px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .social-links {
+      text-align: center;
+      margin: 30px 0;
+    }
+    .social-links a {
+      display: inline-block;
+      margin: 0 10px;
+    }
+    .social-links img {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      transition: transform 0.3s;
+    }
+    .social-links img:hover {
+      transform: scale(1.1);
+    }
+    footer {
+      background: #222;
+      color: #fff;
+      padding: 15px;
+      text-align: center;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ✅ Navbar đồng bộ với index -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="index.html">CarShop</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+        <ul class="navbar-nav text-end">
+          <li class="nav-item"><a class="nav-link" href="index.html">Trang chủ</a></li>
+          <li class="nav-item"><a class="nav-link" href="index.html#productsSection">Sản phẩm</a></li>
+          <li class="nav-item"><a class="nav-link active" href="contact.html">Liên hệ</a></li>
+          <li class="nav-item position-relative">
+            <a class="nav-link" href="cart.html">Giỏ hàng 🛒</a>
+            <span id="cartCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Nội dung liên hệ -->
+  <div class="contact-container">
+    <!-- Thông tin -->
+    <div class="contact-info">
+      <h2>Thông tin liên hệ</h2>
+      <p><strong>📍 Địa chỉ:</strong> 123 Nguyễn Văn Cừ, Quận 5, TP.HCM</p>
+      <p><strong>📞 Hotline:</strong> 0123 456 789</p>
+      <p><strong>✉️ Email:</strong> support@carshop.vn</p>
+      <p><strong>⏰ Giờ làm việc:</strong> 8h00 - 21h00 (Thứ 2 - CN)</p>
+    </div>
+
+    <!-- Form -->
+    <div class="contact-form">
+      <h2>Gửi tin nhắn cho chúng tôi</h2>
+      <form id="contactForm">
+        <input type="text" placeholder="Họ và tên" required>
+        <input type="email" placeholder="Email" required>
+        <input type="text" placeholder="Số điện thoại">
+        <textarea rows="5" placeholder="Nội dung tin nhắn..." required></textarea>
+        <button type="submit">Gửi tin nhắn</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Google Map -->
+  <div class="map">
+    <iframe 
+      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.5097117251987!2d106.67998331533442!3d10.77221589232359!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f48d7f1d6f5%3A0x2d6f5e4f9b7!2zMTIzIE5ndXnhu4VuIFbEg24gQ-G7qywgUXXhuq1uIDUsIFRow6BuaCBwaOG7kSBIMSBDaMOtbmggU8awxqFuZw!5e0!3m2!1svi!2s!4v1673500377370!5m2!1svi!2s" 
+      width="100%" height="400" style="border:0;" allowfullscreen="" loading="lazy">
+    </iframe>
+  </div>
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 CarShop - All rights reserved</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Giữ số lượng giỏ hàng đồng bộ
+    function updateCartCount(){
+      const cart = JSON.parse(localStorage.getItem("cart")) || [];
+      const count = cart.reduce((acc,item)=>acc+item.quantity,0);
+      document.getElementById("cartCount").textContent = count;
+    }
+    updateCartCount();
+
+    // Form liên hệ
+    document.getElementById("contactForm").addEventListener("submit", function(e){
+      e.preventDefault();
+      alert("📩 Cảm ơn bạn đã gửi tin nhắn!");
+      this.reset();
+    });
+  </script>
+ <!-- ✅ Kiểm tra đăng nhập và hiển thị lời chào 3 giây + nút Đăng xuất -->
+<script>
+  const loggedUser = localStorage.getItem("loggedUser");
+  if (loggedUser) {
+    const navbar = document.querySelector(".navbar-nav");
+    if (navbar && !document.getElementById("greetingNavItem")) {
+      const li = document.createElement("li");
+      li.className = "nav-item d-flex align-items-center";
+      li.id = "greetingNavItem";
+
+      const span = document.createElement("span");
+      span.className = "nav-link text-success fw-bold";
+      span.id = "greetingText";
+      span.textContent = `Xin chào, ${loggedUser.split("@")[0]} 👋`;
+
+      const btn = document.createElement("button");
+      btn.className = "btn btn-outline-light btn-sm ms-2";
+      btn.textContent = "Đăng xuất";
+
+      li.appendChild(span);
+      li.appendChild(btn);
+      navbar.appendChild(li);
+
+      // Sau 3 giây tự ẩn lời chào, chỉ còn nút đăng xuất
+      setTimeout(() => {
+        const g = document.getElementById("greetingText");
+        if (g) g.style.display = "none";
+      }, 3000);
+
+      // Khi nhấn "Đăng xuất" → xóa đăng nhập và quay về trang chủ
+      btn.addEventListener("click", () => {
+        localStorage.removeItem("loggedUser");
+        alert("Bạn đã đăng xuất!");
+        location.href = "index.html";
+      });
+    }
+  }
+</script>
+</body>
+</html>

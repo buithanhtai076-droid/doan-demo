@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>CarShop - Trang chủ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { padding-top: 60px; }
+
+    /* Thương hiệu nổi bật */
+    .navbar-brand {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      color: #fff !important;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.45);
+    }
+
+  /* Biểu ngữ (banner) */
+    .banner { position: relative; width: 100%; height: 350px; overflow: hidden; }
+    .banner img { width: 100%; height: 100%; object-fit: cover; }
+    .banner-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 3rem; font-weight: bold; text-shadow: 2px 2px 8px rgba(0,0,0,0.7); }
+
+  /* Sản phẩm */
+  .product-card img { width: 100%; height: 200px; object-fit: cover; transition: transform 0.25s ease, box-shadow 0.25s ease; }
+  .product-card:hover img { transform: translateY(-6px) scale(1.03); box-shadow: 0 12px 30px rgba(0,0,0,0.18); }
+
+  /* Form đăng nhập nhỏ góc trái dưới: sát mép dưới-trái */
+    #loginFormContainer {
+      position: fixed;
+      bottom: 0; /* sát dưới */
+      left: 0;   /* sát trái */
+      width: 260px;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: all 0.35s ease;
+      border-radius: 8px 8px 0 0;
+      margin: 0;
+      overflow: visible;
+    }
+
+  /* Nút đăng nhập nổi (góc trái dưới) */
+    #loginIconBtn {
+      position: fixed;
+      bottom: 12px;
+      left: 12px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background-color: #198754;
+      color: #fff;
+      border: none;
+      z-index: 1100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      cursor: pointer;
+    }
+
+    #loginIconBtn:hover { filter: brightness(0.95); }
+
+  /* Nút thu nhỏ nằm trong khung đăng nhập (góc trên phải của panel) */
+    #toggleLoginBtn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: transparent;
+      color: #198754;
+      border: 2px solid #198754;
+      border-radius: 6px;
+      padding: 0 8px;
+      line-height: 1.6;
+      font-size: 16px;
+      cursor: pointer;
+      z-index: 1200;
+    }
+
+    #toggleLoginBtn:hover { background: rgba(25,135,84,0.08); }
+
+  /* Ẩn nút thu nhỏ khi panel đang ở trạng thái thu nhỏ */
+  #loginFormContainer.minimized #toggleLoginBtn { display: none; }
+
+    /* Ẩn form khi thu nhỏ */
+    #loginFormContainer.minimized form {
+      display: none;
+    }
+
+  /* Tạo khoảng trống phía trên form để không che nút thu nhỏ */
+  #loginFormContainer form { padding-top: 30px; }
+
+    /* Ảnh bay vào giỏ */
+    .fly-img {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      z-index: 2000;
+      transition: all 1s ease-in-out;
+      pointer-events: none;
+      border-radius: 50%;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      opacity: 1;
+    }
+
+    /* Icon MXH trong footer */
+    footer a img {
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    footer a img:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 10px rgba(255,255,255,0.6);
+    }
+
+    /* 📌 Menu xổ xuống căn phải khi ở mobile */
+    @media (max-width: 991px) {
+      .navbar-collapse { text-align: right; }
+      .navbar-nav { margin-left: auto; align-items: flex-end; }
+      .navbar-nav .nav-item { width: 100%; text-align: right; }
+    }
+    /* Snackbar (thông báo dưới cùng) */
+    .snackbar { position: fixed; left: 50%; transform: translateX(-50%); bottom: 20px; background: rgba(20,20,20,0.95); color: #fff; padding: 10px 14px; border-radius: 8px; display: flex; gap: 12px; align-items: center; box-shadow: 0 8px 24px rgba(0,0,0,0.3); opacity: 0; pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease; z-index: 3000; }
+    .snackbar.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+    .snackbar .btn-sb { background: transparent; border: 1px solid rgba(255,255,255,0.12); color: #fff; padding: 6px 10px; border-radius: 6px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <!-- Thanh điều hướng (Navbar) -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="index.html">CarShop</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <!-- menu đẩy sang phải -->
+      <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+        <ul class="navbar-nav align-items-center">
+          <li class="nav-item"><a class="nav-link active" href="#">Trang chủ</a></li>
+          <li class="nav-item"><a class="nav-link" href="#productsSection">Sản phẩm</a></li>
+          <li class="nav-item"><a class="nav-link" href="contact.html">Liên hệ</a></li>
+          <li class="nav-item position-relative">
+            <a class="nav-link" href="cart.html">Giỏ hàng 🛒</a>
+            <span id="cartCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Biểu ngữ (Banner) -->
+  <div class="banner">
+    <img src="/images/banner.jpg" alt="Banner CarShop">
+    <div class="banner-text">Sky Blue CarShop</div>
+  </div>
+
+  <!-- Form đăng nhập nhỏ góc trái dưới -->
+  <div id="loginFormContainer" class="minimized">
+    <button id="toggleLoginBtn">−</button>
+    <form id="loginForm" class="border p-3 rounded bg-light">
+      <h6>Đăng nhập</h6>
+      <input type="email" id="loginEmail" class="form-control mb-2" placeholder="Email" required>
+      <input type="password" id="loginPassword" class="form-control mb-2" placeholder="Mật khẩu" required>
+      <button type="submit" class="btn btn-success w-100">Đăng nhập</button>
+    </form>
+  </div>
+
+  <!-- Nút đăng nhập nổi (kích hoạt form) -->
+  <button id="loginIconBtn" aria-label="Mở đăng nhập">🔒</button>
+
+  <!-- Danh sách sản phẩm -->
+  <div class="container my-5" id="productsSection">
+    <h2 class="text-center mb-4">Sản phẩm nổi bật</h2>
+    <div class="row g-4" id="productList"></div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-dark text-white p-4 mt-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <h5>Liên hệ CarShop</h5>
+          <p>Email: support@carshop.vn</p>
+          <p>Hotline: 0123 456 789</p>
+          <p>Địa chỉ: 123 Đường ABC, TP.HCM</p>
+        </div>
+        <div class="col-md-6 text-md-end text-center">
+          <h5>Kết nối với chúng tôi</h5>
+          <div class="d-flex justify-content-md-end justify-content-center gap-2 mt-2">
+            <a href="https://youtube.com" target="_blank">
+              <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="YouTube" width="40" class="rounded-circle p-1 bg-white">
+            </a>
+            <a href="https://facebook.com" target="_blank">
+              <img src="https://cdn-icons-png.flaticon.com/512/1384/1384053.png" alt="Facebook" width="40" class="rounded-circle p-1 bg-white">
+            </a>
+            <a href="https://instagram.com" target="_blank">
+              <img src="https://cdn-icons-png.flaticon.com/512/1384/1384063.png" alt="Instagram" width="40" class="rounded-circle p-1 bg-white">
+            </a>
+            <a href="https://tiktok.com" target="_blank">
+              <img src="https://cdn-icons-png.flaticon.com/512/3046/3046126.png" alt="TikTok" width="40" class="rounded-circle p-1 bg-white">
+            </a>
+            <a href="https://zalo.me" target="_blank">
+              <img src="https://cdn-icons-png.flaticon.com/512/5968/5968841.png" alt="Zalo" width="40" class="rounded-circle p-1 bg-white">
+            </a>
+          </div>
+        </div>
+      </div>
+      <hr class="border-light">
+      <p class="text-center mb-0">&copy; 2025 CarShop - All rights reserved</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // ==============================
+  //     🧩 DANH SÁCH HÃNG XE
+  // ==============================
+  const brands = [
+    { key: 'lamborghini', label: 'Lamborghini', img: '/images/logolambor.jpg' },
+    { key: 'bugatti', label: 'Bugatti', img: '/images/logobuga.jpg' },
+    { key: 'ferrari', label: 'Ferrari', img: '/images/logofera.jpg' },
+    { key: 'porche', label: 'Porche', img: '/images/logo-porsche.jpg' },
+    { key: 'mercedes', label: 'Mercedes', img: '/images/logomec.jpg' },
+    { key: 'audi', label: 'Audi', img: '/images/logoaudi.jpg' },
+  ];
+
+  const productList = document.getElementById("productList");
+  brands.forEach(b => {
+    productList.innerHTML += `
+      <div class="col-md-4">
+        <a href="product.html?brand=${encodeURIComponent(b.key)}" class="text-decoration-none text-dark">
+          <div class="card product-card">
+            <img src="${b.img}" alt="${b.label}" class="card-img-top">
+            <div class="card-body text-center">
+              <h5 class="card-title">${b.label}</h5>
+            </div>
+          </div>
+        </a>
+      </div>`;
+  });
+
+  // ==============================
+  //         🛒 GIỎ HÀNG
+  // ==============================
+  function updateCartCount() {
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const count = cart.reduce((acc, item) => acc + item.quantity, 0);
+    const el = document.getElementById("cartCount");
+    if (el) el.textContent = count;
+  }
+
+  // Hiệu ứng sản phẩm bay vào giỏ hàng
+  function flyToCart(imgEl) {
+    const cartIcon = document.querySelector(".nav-link[href='cart.html']");
+    if (!cartIcon) return;
+
+    const rectImg = imgEl.getBoundingClientRect();
+    const rectCart = cartIcon.getBoundingClientRect();
+
+    const flyImg = imgEl.cloneNode(true);
+    flyImg.classList.add("fly-img");
+    document.body.appendChild(flyImg);
+
+    flyImg.style.top = rectImg.top + window.pageYOffset + "px";
+    flyImg.style.left = rectImg.left + window.pageXOffset + "px";
+
+    requestAnimationFrame(() => {
+      flyImg.style.top = rectCart.top + window.pageYOffset + "px";
+      flyImg.style.left = rectCart.left + window.pageXOffset + "px";
+      flyImg.style.width = "30px";
+      flyImg.style.height = "30px";
+      flyImg.style.borderRadius = "50%";
+      flyImg.style.opacity = "0";
+    });
+
+    setTimeout(() => flyImg.remove(), 1000);
+  }
+
+  // Thêm sản phẩm vào giỏ hàng
+  function addToCart(name, price, img) {
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    let existing = cart.find(item => item.name === name);
+    if (existing) {
+      existing.quantity++;
+    } else {
+      cart.push({ name, price, img, quantity: 1 });
+    }
+    localStorage.setItem("cart", JSON.stringify(cart));
+    updateCartCount();
+    showSnackbar("Đã thêm một sản phẩm vào giỏ hàng");
+  }
+
+  updateCartCount();
+
+  // ==============================
+  // 👤 THÊM ICON ĐĂNG KÝ LÊN NAVBAR
+  // ==============================
+  (function createRegisterNavIcon() {
+    // Tìm vị trí icon giỏ hàng để chèn kế bên
+    const cartNavItem = document.querySelector(".nav-item .nav-link[href='cart.html']");
+    if (!cartNavItem) return;
+    const cartLi = cartNavItem.closest(".nav-item");
+    if (!cartLi) return;
+
+    // Tạo thẻ li mới chứa icon 👤
+    const regLi = document.createElement("li");
+    regLi.className = "nav-item";
+    regLi.style.marginLeft = "8px";
+
+    const a = document.createElement("a");
+    a.href = "#";
+    a.className = "nav-link";
+    a.id = "registerNavBtn";
+    a.title = "Đăng ký";
+    a.textContent = "👤";
+    a.style.fontSize = "20px";
+
+    regLi.appendChild(a);
+    // Thêm vào navbar (ngay sau giỏ hàng)
+    if (cartLi.nextSibling) cartLi.parentNode.insertBefore(regLi, cartLi.nextSibling);
+    else cartLi.parentNode.appendChild(regLi);
+
+    // Tạo khung form đăng ký (ẩn mặc định)
+    const regForm = document.createElement("div");
+    regForm.id = "registerNavForm";
+    regForm.style.position = "absolute";
+    regForm.style.width = "280px";
+    regForm.style.background = "#f8f9fa";
+    regForm.style.padding = "12px";
+    regForm.style.borderRadius = "8px";
+    regForm.style.boxShadow = "0 4px 15px rgba(0,0,0,0.15)";
+    regForm.style.display = "none";
+    regForm.style.zIndex = "2000";
+
+    // Giao diện form đăng ký
+    regForm.innerHTML = `
+      <h6 class="text-center mb-2">Đăng ký tài khoản</h6>
+      <input id="navRegEmail" class="form-control mb-2" placeholder="Email" type="email">
+      <input id="navRegPass" class="form-control mb-2" placeholder="Mật khẩu" type="password">
+      <div class="d-flex gap-2">
+        <button id="navRegSubmit" class="btn btn-primary w-100">Đăng ký</button>
+        <button id="navRegClose" class="btn btn-secondary w-100">Đóng</button>
+      </div>
+    `;
+    document.body.appendChild(regForm);
+
+    // Khi nhấn icon 👤 → mở form đăng ký
+    a.addEventListener("click", (e) => {
+      e.preventDefault();
+      const rect = a.getBoundingClientRect();
+      regForm.style.top = rect.bottom + 10 + "px";
+      regForm.style.left = rect.left - 200 + "px";
+      regForm.style.display = regForm.style.display === "block" ? "none" : "block";
+    });
+
+    // Nút "Đóng"
+    regForm.querySelector("#navRegClose").addEventListener("click", () => {
+      regForm.style.display = "none";
+    });
+
+    // Nút "Đăng ký"
+    regForm.querySelector("#navRegSubmit").addEventListener("click", () => {
+      const email = document.getElementById("navRegEmail").value.trim();
+      const pass = document.getElementById("navRegPass").value.trim();
+      if (!email || !pass) return alert("Vui lòng nhập đủ thông tin!");
+
+      const users = JSON.parse(localStorage.getItem("users")) || [];
+      if (users.find(u => u.email === email)) {
+        alert("Email này đã tồn tại!");
+        return;
+      }
+
+      users.push({ email, pass });
+      localStorage.setItem("users", JSON.stringify(users));
+      alert("Đăng ký thành công! Hãy đăng nhập bằng nút dưới góc.");
+      regForm.style.display = "none";
+    });
+  })();
+
+  // ==============================
+  // 🔒 QUẢN LÝ ĐĂNG NHẬP / GHI NHỚ
+  // ==============================
+  const loginContainer = document.getElementById("loginFormContainer");
+  const toggleBtn = document.getElementById("toggleLoginBtn");
+  const loginIconBtn = document.getElementById("loginIconBtn");
+
+  // Nếu đã đăng nhập trước đó → hiển thị lời chào
+  const storedLogged = localStorage.getItem("loggedUser");
+  if (storedLogged) {
+    showGreeting(storedLogged);
+  } else {
+    closeLogin();
+  }
+
+  // Khi người dùng bấm nút đăng nhập
+  const loginForm = document.getElementById("loginForm");
+  loginForm.addEventListener("submit", function(e) {
+    e.preventDefault();
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value.trim();
+
+    const users = JSON.parse(localStorage.getItem("users")) || [];
+    const found = users.find(u => u.email === email && u.pass === password);
+
+    if (!found) {
+      alert("❌ Sai tài khoản hoặc chưa đăng ký!");
+      return;
+    }
+
+    // Lưu trạng thái đăng nhập
+    localStorage.setItem("loggedUser", email);
+    showGreeting(email);
+    alert("✅ Đăng nhập thành công!");
+    loginContainer.style.display = "none";
+    loginIconBtn.style.display = "none";
+    document.getElementById("registerNavBtn").style.display = "none";
+  });
+
+  // ==============================
+  // 👋 HIỂN THỊ LỜI CHÀO & NÚT ĐĂNG XUẤT
+  // ==============================
+  function showGreeting(email) {
+    if (document.getElementById("greetingNavItem")) return;
+
+    const navUl = document.querySelector(".navbar-nav");
+    const li = document.createElement("li");
+    li.className = "nav-item d-flex align-items-center";
+    li.id = "greetingNavItem";
+
+    const span = document.createElement("span");
+    span.className = "nav-link text-success fw-bold";
+    span.id = "greetingText";
+    span.textContent = `Xin chào, ${email.split("@")[0]} 👋`;
+
+    const btn = document.createElement("button");
+    btn.id = "logoutBtn";
+    btn.className = "btn btn-outline-light btn-sm ms-2";
+    btn.textContent = "Đăng xuất";
+
+    li.appendChild(span);
+    li.appendChild(btn);
+    navUl.appendChild(li);
+
+    // Ẩn icon đăng nhập và đăng ký
+    loginIconBtn.style.display = "none";
+    const rnav = document.getElementById("registerNavBtn");
+    if (rnav) rnav.style.display = "none";
+
+    // Lời chào chỉ hiển thị 3 giây rồi ẩn
+    setTimeout(() => {
+      const g = document.getElementById("greetingText");
+      if (g) g.style.display = "none";
+    }, 3000);
+
+    // Khi bấm "Đăng xuất"
+    btn.addEventListener("click", () => {
+      localStorage.removeItem("loggedUser");
+      li.remove();
+      loginIconBtn.style.display = "flex";
+      if (rnav) rnav.style.display = "inline-flex";
+      alert("Bạn đã đăng xuất!");
+    });
+  }
+
+  // ==============================
+  // 📦 SNACKBAR (THÔNG BÁO NGẮN)
+  // ==============================
+  function showSnackbar(message) {
+    const sb = document.getElementById('snackbar');
+    if (!sb) return;
+    const msg = sb.querySelector('.sb-msg');
+    msg.textContent = message;
+    sb.classList.add('show');
+    clearTimeout(window._sbTimer);
+    window._sbTimer = setTimeout(() => sb.classList.remove('show'), 3500);
+  }
+
+  // ==============================
+  // 🔘 NÚT MỞ/ĐÓNG FORM ĐĂNG NHẬP
+  // ==============================
+  function openLogin() {
+    loginContainer.classList.remove('minimized');
+    loginContainer.style.bottom = '12px';
+    loginIconBtn.style.display = 'none';
+    toggleBtn.textContent = '−';
+  }
+
+  function closeLogin() {
+    loginContainer.classList.add('minimized');
+    loginContainer.style.bottom = '0';
+    loginIconBtn.style.display = 'flex';
+    toggleBtn.textContent = '+';
+  }
+
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", function() {
+      if (loginContainer.classList.contains('minimized')) openLogin(); else closeLogin();
+    });
+  }
+  if (loginIconBtn) {
+    loginIconBtn.addEventListener('click', function() { openLogin(); });
+  }
+
+  // ==============================
+  // 🔒 ẨN FORM ĐĂNG KÝ KHI NHẤN RA NGOÀI
+  // ==============================
+  document.addEventListener('click', function(e) {
+    const regForm = document.getElementById('registerNavForm');
+    const regBtn = document.getElementById('registerNavBtn');
+    if (!regForm || !regBtn) return;
+    if (regForm.style.display === 'block') {
+      if (!regForm.contains(e.target) && e.target !== regBtn) {
+        regForm.style.display = 'none';
+      }
+    }
+  });
+</script>
+
+
+  <!-- Snackbar thông báo -->
+  <div id="snackbar" class="snackbar" role="status" aria-live="polite">
+    <div class="sb-msg">Đã thêm một sản phẩm vào giỏ hàng</div>
+    <button id="viewCartBtn" class="btn-sb">Xem giỏ hàng</button>
+  </div>
+</body>
+</html>

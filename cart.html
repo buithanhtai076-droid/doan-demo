@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>CarShop - Giỏ hàng</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .cart-img { width: 80px; height: 50px; object-fit: cover; }
+
+    /* Thương hiệu nổi bật */
+    .navbar-brand {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      color: #fff !important;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.45);
+    }
+
+    /* 📌 Menu xổ xuống căn phải */
+    .navbar-collapse {
+      text-align: right;
+    }
+    .navbar-nav {
+      margin-left: auto;
+    }
+    .navbar-nav .nav-item {
+      text-align: right;
+    }
+    /* Thông báo hoàn tác khi xóa sản phẩm */
+    .undo-toast {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      background: #fff;
+      color: #222;
+      padding: 12px 14px;
+      border-radius: 8px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+      display: none;
+      align-items: center;
+      gap: 10px;
+      z-index: 2000;
+    }
+    .undo-toast.show { display: flex; }
+    .undo-toast button { background: transparent; border: none; color: #0d6efd; cursor: pointer; font-weight: 600; }
+    .btn-trash {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 8px;
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+    }
+    .btn-trash svg { pointer-events: none; }
+    /* Snackbar chung cho thông báo (không chặn) */
+    .snackbar { position: fixed; left: 50%; transform: translateX(-50%); bottom: 20px; background: rgba(20,20,20,0.95); color: #fff; padding: 10px 14px; border-radius: 8px; display: flex; gap: 12px; align-items: center; box-shadow: 0 8px 24px rgba(0,0,0,0.3); opacity: 0; pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease; z-index: 3000; }
+    .snackbar.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+    .snackbar .btn-sb { background: transparent; border: 1px solid rgba(255,255,255,0.12); color: #fff; padding: 6px 10px; border-radius: 6px; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <!-- ✅ Navbar đồng bộ với index.html -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="index.html">CarShop</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+        <ul class="navbar-nav text-end">
+          <li class="nav-item"><a class="nav-link" href="index.html">Trang chủ</a></li>
+          <li class="nav-item"><a class="nav-link" href="contact.html">Liên hệ</a></li>
+          <li class="nav-item position-relative">
+            <a class="nav-link active" href="cart.html">Giỏ hàng 🛒</a>
+            <span id="cartCount"
+              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ✅ Có thêm pt-5 để tránh bị navbar che -->
+  <div class="container my-5 pt-5">
+    <h2 class="text-center mb-4">🛒 Giỏ hàng của bạn</h2>
+    <table class="table table-bordered text-center align-middle" id="cartTable">
+      <thead class="table-dark">
+        <tr>
+          <th style="width:44px;"><input type="checkbox" id="selectAll"></th>
+          <th>Sản phẩm</th>
+          <th>Giá</th>
+          <th>Số lượng</th>
+          <th>Tổng</th>
+          <th>Hành động</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div class="text-end mb-3">
+      <h5>Tổng (đã chọn): <span id="selectedTotal">0</span> VNĐ</h5>
+      <h4>Tổng tất cả: <span id="totalPrice">0</span> VNĐ</h4>
+    </div>
+  <div id="checkoutArea" class="d-flex justify-content-end align-items-center gap-3 mb-2">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="" id="agreeCheckbox">
+        <label class="form-check-label small text-muted" for="agreeCheckbox">
+          Tôi đồng ý và xác nhận thông tin để thanh toán
+        </label>
+      </div>
+      <div>
+        <button class="btn btn-success" id="checkoutBtn" disabled>Thanh toán</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    // selection state parallel to cart (true = selected)
+    let selected = [];
+    // try to restore previous selection
+    try{
+      const saved = JSON.parse(localStorage.getItem('cart_selected'));
+      if(Array.isArray(saved) && saved.length === cart.length){
+        selected = saved.slice();
+      } else {
+        selected = cart.map(()=>true);
+      }
+    }catch(e){ selected = cart.map(()=>true); }
+    const selectAllCheckbox = document.getElementById('selectAll');
+  const tbody = document.querySelector("#cartTable tbody");
+  const totalPriceEl = document.getElementById("totalPrice");
+  const selectedTotalEl = document.getElementById('selectedTotal');
+  const cartCount = document.getElementById("cartCount");
+  const checkoutBtn = document.getElementById('checkoutBtn');
+  const agreeCheckbox = document.getElementById('agreeCheckbox');
+
+    function updateCheckoutState(){
+      const hasItems = cart.length > 0;
+      const anySelected = selected.some(Boolean);
+      const agreed = agreeCheckbox ? agreeCheckbox.checked : false;
+      if(checkoutBtn){
+        // require at least one selected item AND agreement
+        checkoutBtn.disabled = !(hasItems && anySelected && agreed);
+      }
+      // update selectAll checkbox state
+      if(selectAllCheckbox){
+        selectAllCheckbox.checked = cart.length>0 && selected.every(Boolean);
+        selectAllCheckbox.indeterminate = selected.some(Boolean) && !selected.every(Boolean);
+      }
+    }
+
+    function renderCart() {
+      tbody.innerHTML = "";
+      let total = 0;
+      let selectedTotal = 0;
+      cart.forEach((item, index) => {
+        const itemTotal = item.price * item.quantity;
+        total += itemTotal;
+        if(selected[index]) selectedTotal += itemTotal;
+        tbody.innerHTML += `
+          <tr>
+            <td><input type="checkbox" class="row-select" data-i="${index}" ${selected[index] ? 'checked' : ''}></td>
+            <td class="d-flex align-items-center gap-2">
+              <img src="${item.img}" alt="${item.name}" class="cart-img">
+              <span>${item.name}</span>
+            </td>
+            <td>${item.price.toLocaleString()}</td>
+            <td>
+              <button class="btn btn-sm btn-secondary" onclick="changeQuantity(${index},-1)">-</button>
+              ${item.quantity}
+              <button class="btn btn-sm btn-secondary" onclick="changeQuantity(${index},1)">+</button>
+            </td>
+            <td>${itemTotal.toLocaleString()}</td>
+            <td>
+              <button class="btn btn-sm btn-danger btn-trash" onclick="removeItem(${index})" aria-label="Xóa ${item.name}" title="Xóa">
+                <!-- Trash SVG -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M5.5 5.5A.5.5 0 0 1 6 5h4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5H6a.5.5 0 0 1-.5-.5v-7z"/>
+                  <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 1 1 0-2h3.086a1 1 0 0 0 .707-.293L7.5 0h1l.207.207A1 1 0 0 0 9.414.5H12a1 1 0 1 1 0 2H14a1 1 0 0 1 .5.5zM4.118 4L4 14a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1L11.882 4H4.118z"/>
+                </svg>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+  totalPriceEl.textContent = total.toLocaleString();
+  selectedTotalEl.textContent = selectedTotal.toLocaleString();
+      cartCount.textContent = cart.reduce((acc,item)=>acc+item.quantity,0);
+      localStorage.setItem("cart", JSON.stringify(cart));
+  // persist selected state too (non-essential but handy across reloads)
+  localStorage.setItem('cart_selected', JSON.stringify(selected));
+      // cập nhật trạng thái nút thanh toán
+      updateCheckoutState();
+      // attach listeners for row checkboxes
+      document.querySelectorAll('.row-select').forEach(cb => {
+        cb.addEventListener('change', function(e){
+          const i = parseInt(this.getAttribute('data-i'));
+          selected[i] = !!this.checked;
+          // update selected totals and button states
+          renderCart();
+        });
+      });
+      // ensure selectAll handler wired
+      if(selectAllCheckbox){
+        selectAllCheckbox.addEventListener('change', function(){
+          const v = !!this.checked;
+          selected = cart.map(()=>v);
+          renderCart();
+        });
+      }
+      // ẩn/hiện khu vực checkbox + checkout khi không có sản phẩm
+      const checkoutArea = document.getElementById('checkoutArea');
+      if(checkoutArea){
+        if(cart.length === 0){
+          checkoutArea.style.display = 'none';
+          // bỏ tick nếu có
+          if(agreeCheckbox) { agreeCheckbox.checked = false; }
+        } else {
+          checkoutArea.style.display = 'flex';
+        }
+      }
+    }
+
+    function changeQuantity(i, delta){
+      cart[i].quantity += delta;
+      if(cart[i].quantity < 1) cart[i].quantity = 1;
+      renderCart();
+    }
+
+    function removeItem(i){
+      // Xóa ngay lập tức nhưng cho phép hoàn tác trong vài giây
+      const removed = cart.splice(i,1)[0];
+      // cũng loại bỏ trạng thái chọn tương ứng
+      const removedSelected = selected.splice(i,1)[0];
+      renderCart();
+
+      // lưu tạm để hoàn tác
+      window.lastRemoved = { item: removed, index: i };
+      const toast = document.getElementById('undoToast');
+      toast.querySelector('.msg').textContent = `Đã xóa "${removed.name}"`;
+      toast.classList.add('show');
+
+      // hủy timer nếu có
+      if(window.undoTimer) clearTimeout(window.undoTimer);
+      window.undoTimer = setTimeout(()=>{
+        toast.classList.remove('show');
+        window.lastRemoved = null;
+        window.undoTimer = null;
+      }, 5000);
+    }
+
+    // Hoàn tác xóa
+    function undoRemove(){
+      const last = window.lastRemoved;
+      const toast = document.getElementById('undoToast');
+      if(!last) return;
+      // chèn lại vào vị trí cũ (nế
+      // u vị trí lớn hơn độ dài hiện tại, thêm cuối)
+      const idx = Math.min(last.index, cart.length);
+      cart.splice(idx, 0, last.item);
+      // restore selection state for this item (true by default)
+      selected.splice(idx, 0, true);
+      renderCart();
+      toast.classList.remove('show');
+      if(window.undoTimer) clearTimeout(window.undoTimer);
+      window.lastRemoved = null;
+      window.undoTimer = null;
+    }
+
+    // Hiển thị snackbar (dùng lại cùng kiểu với product/index)
+    function showSnackbar(message){
+      const sb = document.getElementById('snackbar');
+      console.log('showSnackbar called:', message, 'snackbar found:', !!sb);
+      if(!sb){
+        // Nếu không có phần tử snackbar (do lỗi DOM), fallback sang alert
+        alert(message);
+        return;
+      }
+      const msg = sb.querySelector('.sb-msg');
+      if(msg) msg.textContent = message;
+      // đảm bảo visible
+      sb.style.display = 'flex';
+      // thêm class để bật animation/opacity
+      sb.classList.add('show');
+      if(window._sbTimer) clearTimeout(window._sbTimer);
+      window._sbTimer = setTimeout(()=> sb.classList.remove('show'), 3500);
+    }
+
+    document.getElementById("checkoutBtn").addEventListener("click", function(){
+      // chỉ xử lý những sản phẩm được chọn
+      const itemsToPay = cart.filter((_,i)=>selected[i]);
+      if(itemsToPay.length === 0){
+        alert('Vui lòng chọn ít nhất một sản phẩm để thanh toán.');
+        return;
+      }
+      console.log('checkout clicked, selected items:', itemsToPay);
+      // Hiển thị snackbar cảm ơn
+      showSnackbar('Cảm ơn quý khách đã mua hàng');
+      // sau thông báo, loại bỏ các sản phẩm đã thanh toán khỏi cart
+      setTimeout(()=>{
+        // giữ lại những item không được chọn
+        const remaining = cart.filter((_,i)=>!selected[i]);
+        cart = remaining;
+        // rebuild selected array
+        selected = cart.map(()=>true);
+        renderCart();
+        // Bỏ tick checkbox sau khi thanh toán xong và cập nhật trạng thái nút
+        if(agreeCheckbox){
+          agreeCheckbox.checked = false;
+          updateCheckoutState();
+        }
+      }, 800);
+    });
+
+    renderCart();
+
+    // Bật/tắt checkout khi tick checkbox
+    if(agreeCheckbox){
+      agreeCheckbox.addEventListener('change', updateCheckoutState);
+    }
+  </script>
+
+  <!-- Thông báo hoàn tác xóa -->
+  <div id="undoToast" class="undo-toast" role="status" aria-live="polite">
+    <span class="msg">Đã xóa</span>
+    <button onclick="undoRemove()">Hoàn tác</button>
+  </div>
+
+  <!-- Snackbar cho thông báo chung -->
+  <div id="snackbar" class="snackbar" role="status" aria-live="polite">
+    <div class="sb-msg">&nbsp;</div>
+    <button class="btn-sb" id="viewCartBtn" style="display:none">Xem giỏ hàng</button>
+  </div>
+<!-- ✅ Kiểm tra đăng nhập và hiển thị lời chào 3 giây + nút Đăng xuất -->
+<script>
+  const loggedUser = localStorage.getItem("loggedUser");
+  if (loggedUser) {
+    const navbar = document.querySelector(".navbar-nav");
+    if (navbar && !document.getElementById("greetingNavItem")) {
+      const li = document.createElement("li");
+      li.className = "nav-item d-flex align-items-center";
+      li.id = "greetingNavItem";
+
+      const span = document.createElement("span");
+      span.className = "nav-link text-success fw-bold";
+      span.id = "greetingText";
+      span.textContent = `Xin chào, ${loggedUser.split("@")[0]} 👋`;
+
+      const btn = document.createElement("button");
+      btn.className = "btn btn-outline-light btn-sm ms-2";
+      btn.textContent = "Đăng xuất";
+
+      li.appendChild(span);
+      li.appendChild(btn);
+      navbar.appendChild(li);
+
+      // Sau 3 giây tự ẩn lời chào, chỉ còn nút đăng xuất
+      setTimeout(() => {
+        const g = document.getElementById("greetingText");
+        if (g) g.style.display = "none";
+      }, 3000);
+
+      // Khi nhấn "Đăng xuất" → xóa đăng nhập và quay về trang chủ
+      btn.addEventListener("click", () => {
+        localStorage.removeItem("loggedUser");
+        alert("Bạn đã đăng xuất!");
+        location.href = "index.html";
+      });
+    }
+  }
+</script>
+</body>
+</html>
