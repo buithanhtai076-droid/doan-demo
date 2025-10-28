@@ -58,6 +58,15 @@
     .snackbar { position: fixed; left: 50%; transform: translateX(-50%); bottom: 20px; background: rgba(20,20,20,0.95); color: #fff; padding: 10px 14px; border-radius: 8px; display: flex; gap: 12px; align-items: center; box-shadow: 0 8px 24px rgba(0,0,0,0.3); opacity: 0; pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease; z-index: 3000; }
     .snackbar.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
     .snackbar .btn-sb { background: transparent; border: 1px solid rgba(255,255,255,0.12); color: #fff; padding: 6px 10px; border-radius: 6px; cursor: pointer; }
+
+    /* Icon MXH trong footer */
+    footer a img {
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    footer a img:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 10px rgba(255,255,255,0.6);
+    }
   </style>
 </head>
 <body>
@@ -335,6 +344,42 @@
     <div class="sb-msg">&nbsp;</div>
     <button class="btn-sb" id="viewCartBtn" style="display:none">Xem giỏ hàng</button>
   </div>
+
+  <!-- Footer -->
+  <footer class="bg-dark text-white p-4 mt-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <h5>Liên hệ CarShop</h5>
+          <p>Email: support@carshop.vn</p>
+          <p>Hotline: 0123 456 789</p>
+          <p>Địa chỉ: 123 Đường ABC, TP.HCM</p>
+        </div>
+        <div class="col-md-6 text-center">
+          <h5>Kết nối với chúng tôi</h5>
+          <div class="d-flex justify-content-center gap-2 mt-2">
+            <a href="https://youtube.com" target="_blank">
+              <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="YouTube" width="40" class="rounded-circle p-1 bg-white">
+            </a>
+            <a href="https://facebook.com" target="_blank">
+              <img src="https://cdn-icons-png.flaticon.com/512/1384/1384053.png" alt="Facebook" width="40" class="rounded-circle p-1 bg-white">
+            </a>
+            <a href="https://instagram.com" target="_blank">
+              <img src="https://cdn-icons-png.flaticon.com/512/1384/1384063.png" alt="Instagram" width="40" class="rounded-circle p-1 bg-white">
+            </a>
+            <a href="https://tiktok.com" target="_blank">
+              <img src="https://cdn-icons-png.flaticon.com/512/3046/3046126.png" alt="TikTok" width="40" class="rounded-circle p-1 bg-white">
+            </a>
+            <a href="https://zalo.me" target="_blank">
+              <img src="https://cdn-icons-png.flaticon.com/512/5968/5968841.png" alt="Zalo" width="40" class="rounded-circle p-1 bg-white">
+            </a>
+          </div>
+        </div>
+      </div>
+      <hr class="border-light">
+      <p class="text-center mb-0">&copy; 2025 CarShop - All rights reserved</p>
+    </div>
+  </footer>
 <!-- ✅ Kiểm tra đăng nhập và hiển thị lời chào 3 giây + nút Đăng xuất -->
 <script>
   const loggedUser = localStorage.getItem("loggedUser");
